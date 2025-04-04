@@ -8,12 +8,14 @@ pakistan_tz = pytz.timezone('Asia/Karachi')
 current_time = datetime.datetime.now(pakistan_tz)
 current_date = current_time.date()
 
-# ✅ Set Page Config
+
+# ✅ Set Page Config at the very top
 st.set_page_config(page_title="CM Gizri Roster", layout="wide")
+
 
 # ✅ Load Data Function
 def load_data():
-    return pd.DataFrame([
+    data = [
         {   
             "Supervisor": "ZAHID HUSSAIN",
             "Emp#": "80023543",
@@ -330,47 +332,158 @@ def load_data():
     "Duty_Time":"M,E,N,M,E,   Sun-Fri",
 
     
-  },
-        # Add more data here...
-    ])
+  }
+    ]
+    return pd.DataFrame(data)
 
 # ✅ Load Data
 data = load_data()
 
-# ✅ Sidebar for Navigation
-with st.sidebar:
-    st.image("https://vtlogo.com/wp-content/uploads/2020/03/k-electric-vector-logo.png", width=150)
-    selected_date = st.date_input("📅 Select Date", current_date, min_value=datetime.date(2025, 3, 30), max_value=datetime.date(2025, 5, 3))
-    view_option = st.selectbox("🔍 Search By:", ["All Teams", "Supervisor", "Lineman", "Fitter", "Karkun", "Emp#"])
+# ✅ Load Data
+data = load_data()
 
-    
-    
-    if view_option != "All Teams":
-        selected_name = st.selectbox(f"Select {view_option}:", [""] + data[view_option].dropna().unique().tolist())
+# ✅ Create Layout with Calendar at the Top Right
+col1, col2 = st.columns([3, 1])
+with col1:
+    st.image("https://vtlogo.com/wp-content/uploads/2020/03/k-electric-vector-logo.png", width=120)
+
+with col2:
+    selected_date = st.date_input("📅 Select Date", current_date, min_value=current_date, max_value=datetime.date(2025, 5, 3))
 
 # ✅ Display Titles
-st.markdown("<h3 style='text-align: center; color:#3498db;'>📋 DUTY ROSTER - CM GIZRI</h3>", unsafe_allow_html=True)
-st.markdown("<h5 style='text-align: center; color:#3256db;'>👤 DGM CM: Mr. Rehan Murtaza | 🏢 Manager CM: Mr. Sajid Mehmood</h5>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center; color:#3498db;'>📋 DUTY ROASTER CM GIZRI (30 MARCH TO 3rd MAY)</h4>", unsafe_allow_html=True)
+st.markdown("<h5 style='text-align: center; color:#3256db;'>🤵‍♂️ DGM CM Mr REHAN MURTAZA</h5>", unsafe_allow_html=True)
+st.markdown("<h5 style='text-align: center; color:#3256db;'>👨‍💼 MANAGER CM Mr SAJID MEHMOOD</h5>", unsafe_allow_html=True)
+st.markdown("---")
+
+# ✅ Function to determine shift based on date
+def get_shift(duty_time, selected_date):
+    start_date = datetime.date(2025, 3, 30)
+    shift_intervals = [
+        (start_date + datetime.timedelta(days=7 * i), start_date + datetime.timedelta(days=7 * (i + 1) - 1))
+        for i in range(5)
+    ]
+    shifts = duty_time.split(",")
+    for i, (start, end) in enumerate(shift_intervals):
+        if start <= selected_date <= end:
+            return shifts[i] if i < len(shifts) else ""
+    return ""
+
+# Categorize teams based on shifts
+morning_shift = []
+evening_shift = []
+night_shift = []
+off_day_teams = []
+
+for _, row in data.iterrows():
+    if row['Off_Day'] == selected_date.strftime('%A'):
+        off_day_teams.append(row)
+        continue  # Skip off-day teams
+
+    shift = get_shift(row['Duty_Time'], selected_date)
+    team_info = f"**Supervisor:** {row['Supervisor']} (Emp#: {row['Emp#']})\n**Task:** {row['Task']}\n**Lineman:** {row['Lineman']} (Emp#: {row['Lineman_Emp#']})\n**Fitter:** {row['Fitter']} (Emp#: {row['Fitter_Emp#']})\n**Karkun:** {row['Karkun']} (Emp#: {row['Karkun_Emp#']})"
+    
+    if shift == "M":
+        morning_shift.append(team_info)
+    elif shift == "E":
+        evening_shift.append(team_info)
+    elif shift == "N":
+        night_shift.append(team_info)
+
+# ✅ Display Current Date & Time
+st.markdown(f"<h5 style='text-align: center; color:#3256db;'>📅 Team Details for {selected_date.strftime('%A, %d %B %Y')}</h5>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center;'>⏰ Current Time in Karachi: {current_time.strftime('%I:%M %p')}</p>", unsafe_allow_html=True)
 
-# ✅ Filter Teams Based on Selection
-if view_option == "All Teams":
-    filtered_data = data
-else:
-    filtered_data = data[data[view_option] == selected_name] if selected_name else data
+# ✅ Display Off-Day Teams
+if off_day_teams:
+    st.markdown("### ❌ Off-Day Teams")
+    for team in off_day_teams:
+        st.markdown(f"**Supervisor:** {team['Supervisor']} (Emp#: {team['Emp#']}) - Off Day: {team['Off_Day']}")
+    st.markdown("---")
 
-# ✅ Display Teams
-st.markdown(f"<h5 style='text-align: center;'>📆 Roster for {selected_date.strftime('%A, %d %B %Y')}</h5>", unsafe_allow_html=True)
+# ✅ Display Active Teams
+if morning_shift:
+    st.markdown("### ☀️ Morning Shift")
+    for team in morning_shift:
+        st.markdown(team)
+        st.markdown("---")
 
-for _, row in filtered_data.iterrows():
-    with st.expander(f"📌 {row['Supervisor']} (Emp#: {row['Emp#']})"):
-        st.markdown(f"**🛠 Task:** {row['Task']}")
-        st.markdown(f"**👷 Lineman:** {row['Lineman']} (Emp#: {row['Lineman_Emp#']})")
-        st.markdown(f"**🔧 Fitter:** {row['Fitter']} (Emp#: {row['Fitter_Emp#']})")
-        st.markdown(f"**📌 Karkun:** {row['Karkun']} (Emp#: {row['Karkun_Emp#']})")
-        st.markdown(f"**📅 Off Day:** {row['Off_Day']}")
-        st.markdown(f"**⏰ Duty Time:** {row['Duty_Time']}")
+if evening_shift:
+    st.markdown("### 🌆 Evening Shift")
+    for team in evening_shift:
+        st.markdown(team)
+        st.markdown("---")
 
-# ✅ Add a Footer
-st.markdown("---")
-st.markdown("<p style='text-align: center; color:gray;'>© 2025 K-Electric - CM Gizri Roster</p>", unsafe_allow_html=True)
+if night_shift:
+    st.markdown("### 🌙 Night Shift")
+    for team in night_shift:
+        st.markdown(team)
+        st.markdown("---")
+
+# ✅ Dropdown for Selecting Team Member Type
+view_option = st.selectbox("🔍 Find a Team Member Type:", ["Supervisor", "Lineman", "Fitter", "Karkun", "Employee Number", "All Teams Details"])
+
+# ✅ If "All Teams Details" is selected, show all team details
+if view_option == "All Teams Details":
+    st.markdown("<h5 style='text-align: center; color:#3256db;'>📋 Complete Team Roster</h5>", unsafe_allow_html=True)
+    
+    for _, row in data.iterrows():
+        st.markdown(f"""
+        <div style='background-color: white; padding: 12px; border-radius: 8px; 
+                    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); margin-bottom: 10px;'>
+            <h5>🏷️ Supervisor: {row['Supervisor']} (Emp#: {row['Emp#']})</h5>
+            <p><b>🛠 Task:</b> {row['Task']}</p>
+            <p><b>👷 Lineman:</b> {row['Lineman']} (Emp#: {row['Lineman_Emp#']})</p>
+            <p><b>🔧 Fitter:</b> {row['Fitter']} (Emp#: {row['Fitter_Emp#']})</p>
+            <p><b>📌 Karkun:</b> {row['Karkun']} (Emp#: {row['Karkun_Emp#']})</p>
+            <p><b>📅 Off Day:</b> {row['Off_Day']}</p>
+            <p><b>⏰ Duty Time:</b> {row['Duty_Time']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ✅ Dropdown for Selecting Name
+selected_name = None
+
+if view_option == "Supervisor":
+    selected_name = st.selectbox("Select a Supervisor:", [""] + data["Supervisor"].tolist())
+elif view_option == "Lineman":
+    selected_name = st.selectbox("Select a Lineman:", [""] + data["Lineman"].tolist())
+elif view_option == "Fitter":
+    selected_name = st.selectbox("Select a Fitter:", [""] + data["Fitter"].tolist())
+elif view_option == "Karkun":
+    selected_name = st.selectbox("Select a Karkun:", [""] + data["Karkun"].tolist())
+elif view_option == "Employee Number":
+    selected_name = st.selectbox("Select or type an Employee Number:", [""] + 
+                                 pd.concat([data["Emp#"], data["Lineman_Emp#"], data["Fitter_Emp#"], data["Karkun_Emp#"]])
+                                 .dropna().unique().tolist())
+
+# ✅ Show Details Only After Selection
+if selected_name and selected_name.strip():
+    details = data[(data["Supervisor"] == selected_name) | 
+                   (data["Lineman"] == selected_name) |
+                   (data["Fitter"] == selected_name) | 
+                   (data["Karkun"] == selected_name) |
+                   (data["Emp#"] == selected_name) |
+                   (data["Lineman_Emp#"] == selected_name) |
+                   (data["Fitter_Emp#"] == selected_name) |
+                   (data["Karkun_Emp#"] == selected_name)]
+    
+    if not details.empty:
+        details = details.iloc[0]  # Get first matching record
+
+        # ✅ Display Details in Card Format
+        st.markdown("<div style='background-color: white; padding: 12px; border-radius: 8px; "
+                    "box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);'>", unsafe_allow_html=True)
+        st.markdown(f"<h5>🏷️ Supervisor: {details['Supervisor']} (Emp#: {details['Emp#']})</h5>", unsafe_allow_html=True)
+        st.write(f"**🛠 Task:** {details['Task']}")
+        st.write(f"**👷 Lineman:** {details['Lineman']} (Emp#: {details['Lineman_Emp#']})")
+        st.write(f"**🔧 Fitter:** {details['Fitter']} (Emp#: {details['Fitter_Emp#']})")
+        st.write(f"**📌 Karkun:** {details['Karkun']} (Emp#: {details['Karkun_Emp#']})")
+        st.write(f"**📅 Off Day:** {details['Off_Day']}")
+        st.write(f"**⏰ Duty Time:** {details['Duty_Time']}")
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+
+# ✅ Footer
+st.markdown("<hr style='border: 1px solid #ddd;'>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 14px; color: #555;'>🚀 This application is created by <b>Muhammad Yameen Saleem</b></p>", unsafe_allow_html=True)
