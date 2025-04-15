@@ -224,7 +224,7 @@ def load_data():
     "Karkun": "FARAZ",
     "Karkun_Emp#": "SE-7123",
     "Off_Day": "Wednesday",
-    "Duty_Time":"N,M,E,N,M,   Thu-Tue",
+    "Duty_Time":"N,M,E,N,M,   Thu-Tue"
   },
   {
     "Supervisor": "ALTAF",
@@ -250,7 +250,7 @@ def load_data():
     "Karkun": "none",
     "Karkun_Emp#": "none",
     "Off_Day": "Sunday",
-    "Duty_Time":"M,M,M,M,M,   Mon-Sat",
+    "Duty_Time":"M,M,M,M,M,   Mon-Sat"
   },
   {
     "Supervisor": "NOMAN",
@@ -302,7 +302,7 @@ def load_data():
     "Karkun": "JOHN",
     "Karkun_Emp#": "241",
     "Off_Day": "Saturday",
-    "Duty_Time":"N,M,E,N,M,   Sun-Fri",
+    "Duty_Time":"N,M,E,N,M,   Sun-Fri"
   },
   {
     "Supervisor": "ALFRED YOUSAF",
@@ -315,7 +315,7 @@ def load_data():
     "Karkun": "VISHAL MUNAWAR",
     "Karkun_Emp#": "F-KE-0605",
     "Off_Day": "Sunday",
-    "Duty_Time":"E,N,N,E,N,   Mon-Sat",
+    "Duty_Time":"E,N,N,E,N,   Mon-Sat"
   },
   {
     "Supervisor": "IMRAN KHAN",
@@ -328,15 +328,12 @@ def load_data():
     "Karkun": "KHALID",
     "Karkun_Emp#":"C-2894",
     "Off_Day": "Saturday",
-    "Duty_Time":"M,E,N,M,E,   Sun-Fri",
+    "Duty_Time":"M,E,N,M,E,   Sun-Fri"
 
     
   }
     ]
     return pd.DataFrame(data)
-
-# ✅ Load Data
-data = load_data()
 
 # ✅ Load Data
 data = load_data()
