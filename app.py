@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import datetime
 import pytz
-
 # Set timezone to Pakistan (Karachi)
 pakistan_tz = pytz.timezone('Asia/Karachi')
 current_time = datetime.datetime.now(pakistan_tz)
